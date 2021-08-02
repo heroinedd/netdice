@@ -1,0 +1,259 @@
+{
+    "topology": {
+        "name": "Garr201010",
+        "nof_nodes": 56,
+        "nof_links": 75
+    },
+    "scenarios": [
+        {
+            "rrs": [
+                39,
+                12
+            ],
+            "brs": [
+                53,
+                47,
+                49,
+                28,
+                3,
+                43,
+                2,
+                46,
+                31,
+                37
+            ],
+            "property": "Waypoint([src: 5, dst: XXX], 45)",
+            "time-explore": 0.6057133674621582,
+            "finished": {
+                "precision": 9.961452608697734e-05,
+                "p_property": 0,
+                "num_explored": 176
+            }
+        },
+        {
+            "rrs": [
+                1,
+                8
+            ],
+            "brs": [
+                43,
+                11,
+                48,
+                35,
+                2,
+                38,
+                19,
+                20,
+                42,
+                0
+            ],
+            "property": "Waypoint([src: 40, dst: XXX], 13)",
+            "time-explore": 1.0123581886291504,
+            "finished": {
+                "precision": 9.944325894262204e-05,
+                "p_property": 0,
+                "num_explored": 278
+            }
+        },
+        {
+            "rrs": [
+                24,
+                8
+            ],
+            "brs": [
+                37,
+                29,
+                6,
+                22,
+                45,
+                13,
+                25,
+                27,
+                15,
+                0
+            ],
+            "property": "Waypoint([src: 18, dst: XXX], 31)",
+            "time-explore": 0.8826174736022949,
+            "finished": {
+                "precision": 9.905844057200854e-05,
+                "p_property": 0,
+                "num_explored": 244
+            }
+        },
+        {
+            "rrs": [
+                55,
+                50
+            ],
+            "brs": [
+                18,
+                31,
+                27,
+                47,
+                15,
+                14,
+                32,
+                20,
+                0,
+                26
+            ],
+            "property": "Waypoint([src: 23, dst: XXX], 36)",
+            "time-explore": 0.9777650833129883,
+            "finished": {
+                "precision": 9.934429912672459e-05,
+                "p_property": 0,
+                "num_explored": 277
+            }
+        },
+        {
+            "rrs": [
+                7,
+                8
+            ],
+            "brs": [
+                26,
+                15,
+                10,
+                11,
+                52,
+                12,
+                19,
+                54,
+                31,
+                27
+            ],
+            "property": "Waypoint([src: 18, dst: XXX], 55)",
+            "time-explore": 0.5447423458099365,
+            "finished": {
+                "precision": 9.945619348972198e-05,
+                "p_property": 0,
+                "num_explored": 153
+            }
+        },
+        {
+            "rrs": [
+                4,
+                8
+            ],
+            "brs": [
+                49,
+                18,
+                37,
+                47,
+                42,
+                11,
+                13,
+                31,
+                40,
+                43
+            ],
+            "property": "Waypoint([src: 53, dst: XXX], 54)",
+            "time-explore": 0.9811911582946777,
+            "finished": {
+                "precision": 9.938993194613662e-05,
+                "p_property": 0,
+                "num_explored": 277
+            }
+        },
+        {
+            "rrs": [
+                40,
+                4
+            ],
+            "brs": [
+                43,
+                33,
+                21,
+                23,
+                8,
+                27,
+                13,
+                53,
+                28,
+                10
+            ],
+            "property": "Waypoint([src: 2, dst: XXX], 3)",
+            "time-explore": 0.9704878330230713,
+            "finished": {
+                "precision": 9.953088325198595e-05,
+                "p_property": 0,
+                "num_explored": 267
+            }
+        },
+        {
+            "rrs": [
+                4,
+                25
+            ],
+            "brs": [
+                51,
+                12,
+                34,
+                45,
+                10,
+                53,
+                35,
+                28,
+                26,
+                48
+            ],
+            "property": "Waypoint([src: 49, dst: XXX], 6)",
+            "time-explore": 1.3571374416351318,
+            "finished": {
+                "precision": 9.932403644730133e-05,
+                "p_property": 0,
+                "num_explored": 366
+            }
+        },
+        {
+            "rrs": [
+                4,
+                16
+            ],
+            "brs": [
+                43,
+                47,
+                34,
+                14,
+                10,
+                37,
+                23,
+                5,
+                49,
+                25
+            ],
+            "property": "Waypoint([src: 28, dst: XXX], 29)",
+            "time-explore": 0.8626430034637451,
+            "finished": {
+                "precision": 9.90535202263221e-05,
+                "p_property": 0.9989009464797737,
+                "num_explored": 239
+            }
+        },
+        {
+            "rrs": [
+                4,
+                24
+            ],
+            "brs": [
+                49,
+                25,
+                47,
+                38,
+                31,
+                37,
+                21,
+                48,
+                45,
+                18
+            ],
+            "property": "Waypoint([src: 54, dst: XXX], 43)",
+            "time-explore": 0.8020610809326172,
+            "finished": {
+                "precision": 9.99755867766572e-05,
+                "p_property": 0,
+                "num_explored": 233
+            }
+        }
+    ]
+}

@@ -152,17 +152,31 @@ class Explorer:
         sr_next = self._igp_provider.get_static_route_at(cur, fwg.dst)
         if sr_next is None:
             bgp_next_hop = self._igp_provider.get_bgp_next_hop(cur, fwg.dst)
-            if bgp_next_hop != prev_next_hop:
-                decision_points.append(cur)
-            if bgp_next_hop is not None:
-                if bgp_next_hop.is_external():
-                    # traffic exits the network here
-                    fwg.add_fw_rule(cur, -1)
-                else:
-                    next_routers = self._igp_provider.get_next_routers_shortest_paths(cur, bgp_next_hop.assigned_node)
-                    for next in next_routers:
-                        fwg.add_fw_rule(cur, next)
-                        self._visit_construct_fw_graph(fwg, decision_points, visited, next, bgp_next_hop)
+            # if bgp_next_hop != prev_next_hop:
+            #     decision_points.append(cur)
+            # if bgp_next_hop is not None:
+            #     if bgp_next_hop.is_external():
+            #         # traffic exits the network here
+            #         fwg.add_fw_rule(cur, -1)
+            #     else:
+            #         next_routers = self._igp_provider.get_next_routers_shortest_paths(cur, bgp_next_hop.assigned_node)
+            #         for next in next_routers:
+            #             fwg.add_fw_rule(cur, next)
+            #             self._visit_construct_fw_graph(fwg, decision_points, visited, next, bgp_next_hop)
+
+            # dan
+            for one_next_hop in bgp_next_hop:
+                if one_next_hop != prev_next_hop:
+                    decision_points.append(cur)
+                if one_next_hop is not None:
+                    if one_next_hop.is_external():
+                        # traffic exits the network here
+                        fwg.add_fw_rule(cur, -1)
+                    else:
+                        next_routers = self._igp_provider.get_next_routers_shortest_paths(cur, one_next_hop.assigned_node)
+                        for next in next_routers:
+                            fwg.add_fw_rule(cur, next)
+                            self._visit_construct_fw_graph(fwg, decision_points, visited, next, one_next_hop)
         else:
             if self.problem.G.has_edge(cur, sr_next):
                 fwg.add_fw_rule(cur, sr_next)
@@ -187,8 +201,14 @@ class Explorer:
         for r in decision_points:
             bgp_router = self.problem.bgp_config.get_bgp_router_for_node(r)
             bgp_next_hop = bgp_router.get_selected_next_hop()
-            if not bgp_next_hop.is_external():
-                Explorer.add_edges_of_path(self._igp_provider.get_a_shortest_path(r, bgp_next_hop.assigned_node), hot_edges)
+            # if not bgp_next_hop.is_external():
+            #     Explorer.add_edges_of_path(self._igp_provider.get_a_shortest_path(r, bgp_next_hop.assigned_node), hot_edges)
+
+            # dan
+            for one_next_hop in bgp_next_hop:
+                if not one_next_hop.is_external():
+                    Explorer.add_edges_of_path(self._igp_provider.get_a_shortest_path(r, one_next_hop.assigned_node),
+                                               hot_edges)
 
         # mark edges on forwarding graph as hot
         for e in fwg.traversed_edges:

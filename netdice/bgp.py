@@ -41,7 +41,7 @@ class Announcement:
         return other is not None and self.attrs == other.attrs
 
     def __ne__(self, other):
-        return not(self == other)
+        return not (self == other)
 
 
 class BgpMsg:
@@ -82,7 +82,7 @@ class BgpMsg:
         return hash((self.med, self.peer.id, self.next_hop.id, self.remote_as))
 
     def __eq__(self, other):
-        return other is not None and\
+        return other is not None and \
                (self.med, self.peer.id, self.next_hop.id, self.remote_as) \
                == (other.med, other.peer.id, other.next_hop.id, other.remote_as)
 
@@ -135,7 +135,7 @@ class BgpRouterBase:
         return other is not None and (self.id) == (other.id)
 
     def __ne__(self, other):
-        return not(self == other)
+        return not (self == other)
 
     def __repr__(self):
         return "R-" + self.name
@@ -200,7 +200,7 @@ class BgpIntRouter(BgpRouterBase):
         # variables keeping state during the BGP protocol
         self.msg_in = []  # stack for received messages
         self.msg = []  # stack for currently processed messages
-        self.last_sent = None   # the last sent announcement
+        self.last_sent = None  # the last sent announcement
         self.last_best = None  # the currently selected best announcement
         self._converged = False
 
@@ -214,30 +214,67 @@ class BgpIntRouter(BgpRouterBase):
         return len(self.rr_clients) > 0
 
     def local_bgp_step(self, igp_cost_provider, send=True):
-        best = None
+        # best = None
+        # for m in self.msg:
+        #     if best is None or m.better(best, self._igp_cost_for_msg(m, igp_cost_provider),
+        #                                 self._igp_cost_for_msg(best, igp_cost_provider)):
+        #         best = m
+        # out = best
+        # self.last_best = best
+        # if not send:
+        #     return
+        # if out is not None:
+        #     out = out.copy()
+        #     from_peer = out.peer
+        #     out.peer = self     # overwrite the peer field
+        #     if out.next_hop.is_external():
+        #         out.next_hop = self   # overwrite next hop field for externally received announcements
+        #     # log.debug(" {} re-distributes {}".format(self.id, out))
+        #     for p in self.peers:
+        #         if p != from_peer:
+        #             p.receive(out)
+        #     for p in self.rr_clients:
+        #         if p != from_peer:
+        #             p.receive(out)
+        # self._converged = self.last_sent == out
+        # self.last_sent = out
+
+        # dan
+        best = []
         for m in self.msg:
-            if best is None or m.better(best, self._igp_cost_for_msg(m, igp_cost_provider),
-                                        self._igp_cost_for_msg(best, igp_cost_provider)):
-                best = m
+            if len(best) == 0:
+                best = [m]
+            else:
+                c1 = self._igp_cost_for_msg(m, igp_cost_provider)
+                c2 = self._igp_cost_for_msg(best[0], igp_cost_provider)
+                if m.better(best[0], c1, c2):
+                    best = [m]
+                elif len(best) > 0 and c1 == c2:
+                    best.append(m)
         out = best
         self.last_best = best
+
         if not send:
             return
-        if out is not None:
-            out = out.copy()
-            from_peer = out.peer
-            out.peer = self     # overwrite the peer field
-            if out.next_hop.is_external():
-                out.next_hop = self   # overwrite next hop field for externally received announcements
+
+        sent = []
+        for one in out:
+            one = one.copy()
+            from_peer = one.peer
+            one.peer = self  # overwrite the peer field
+            if one.next_hop.is_external():
+                one.next_hop = self  # overwrite next hop field for externally received announcements
             # log.debug(" {} re-distributes {}".format(self.id, out))
             for p in self.peers:
                 if p != from_peer:
-                    p.receive(out)
+                    p.receive(one)
             for p in self.rr_clients:
                 if p != from_peer:
-                    p.receive(out)
-        self._converged = self.last_sent == out
-        self.last_sent = out
+                    p.receive(one)
+            sent.append(one)
+
+        self._converged = self.last_sent == sent
+        self.last_sent = sent
 
     def prepare_next_round(self):
         self.msg = self.msg_in
@@ -264,11 +301,12 @@ class BgpIntRouter(BgpRouterBase):
         """
         if self.last_best is None:
             return None
-        return self.last_best.next_hop
+        # return self.last_best.next_hop
+        return [one.next_hop for one in self.last_best]
 
     def _igp_cost_for_msg(self, msg: BgpMsg, cost_provider):
         if msg.next_hop.is_external():
-            return -1   # return -1 to make sure external announcements are always preferred over internal announcements
+            return -1  # return -1 to make sure external announcements are always preferred over internal announcements
         return cost_provider.get_igp_cost(self.assigned_node, msg.next_hop.assigned_node)
 
 
@@ -321,11 +359,11 @@ class BgpProtocol:
         self.rr_in_partition = []  # route reflectors in the current network partition
         self.br_top3_in_partition = set()  # border routers in the current network partition which survived Top3
 
-        self._ext_bgp_clusters = [] # groups of external BGP nodes which are mutually reachable via sessions
-                                    # (there may be multiple such clusters in one network partition: two BGP nodes
-                                    # may be reachable via links but not via BGP sessions if they are inter-connected
-                                    # via an intermediate BGP router outside the partition)
-                                    # this is only required to perform Top3 correctly
+        self._ext_bgp_clusters = []  # groups of external BGP nodes which are mutually reachable via sessions
+        # (there may be multiple such clusters in one network partition: two BGP nodes
+        # may be reachable via links but not via BGP sessions if they are inter-connected
+        # via an intermediate BGP router outside the partition)
+        # this is only required to perform Top3 correctly
 
         self._igp_cost_provider = {}  # provider for IGP costs
         self._ext_announcements = config.ext_anns
@@ -361,7 +399,7 @@ class BgpProtocol:
 
     def _construct_bgp_clusters_dfs(self, src: int, igp_provider, cur: BgpIntRouter, cur_component: int,
                                     visited: list, components: list):
-        assert(not cur.is_external())
+        assert (not cur.is_external())
         if visited[cur.assigned_node]:
             return
         visited[cur.assigned_node] = True
@@ -380,8 +418,8 @@ class BgpProtocol:
         Fills self._bgp_clusters
         """
         # find connected components by repeated DFS
-        visited = [False]*igp_provider._problem.nof_nodes
-        components = [-1]*igp_provider._problem.nof_nodes
+        visited = [False] * igp_provider._problem.nof_nodes
+        components = [-1] * igp_provider._problem.nof_nodes
         cur_component = 0
         for r in self._active_in_partition:
             if not r.is_external() and not visited[r.assigned_node]:
@@ -389,7 +427,7 @@ class BgpProtocol:
                 cur_component += 1
 
         # group external nodes by their cluster
-        self._ext_bgp_clusters = [None]*cur_component
+        self._ext_bgp_clusters = [None] * cur_component
         for r in self.ext_in_partition:
             my_component = components[r.peer.assigned_node]
             if self._ext_bgp_clusters[my_component] is None:
@@ -428,7 +466,7 @@ class BgpProtocol:
                 raise Exception("Bgp did not converge after 100 rounds")
             # log.debug("started next BGP round")
             converged = True
-            for r in self._all_in_partition:    # need to do this also for passive nodes to clear their msg_in lists
+            for r in self._all_in_partition:  # need to do this also for passive nodes to clear their msg_in lists
                 r.prepare_next_round()
                 converged = converged and r.is_converged()
             if not converged:

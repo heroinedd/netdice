@@ -1,0 +1,8 @@
+{
+    "topology": {
+        "name": "Kdl",
+        "nof_nodes": 754,
+        "nof_links": 899
+    },
+    "scenarios": []
+}
