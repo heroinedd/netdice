@@ -1,16 +1,16 @@
 import json
 import time
 
-from bgp import BgpIntRouter, BgpExtRouter, Announcement, BgpConfig
-from common import Flow
-from experiments.scenarios import BaseScenario
-from explorer import Explorer
-from failures import LinkFailureModel, NodeFailureModel
-from input_parser import NameResolver, InputParser
-from my_logging import log, log_context, time_measure
-from prob import Prob
-from problem import Problem
-from properties import WaypointProperty
+from netdice.bgp import BgpIntRouter, BgpExtRouter, Announcement, BgpConfig
+from netdice.common import Flow
+from netdice.experiments.scenarios import BaseScenario
+from netdice.explorer import Explorer
+from netdice.failures import LinkFailureModel, NodeFailureModel
+from netdice.input_parser import NameResolver, InputParser
+from netdice.my_logging import log, log_context, time_measure
+from netdice.prob import Prob
+from netdice.problem import Problem
+from netdice.properties import WaypointProperty
 
 
 class SynthScenario(BaseScenario):
