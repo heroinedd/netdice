@@ -62,6 +62,10 @@ class FwGraph:
         """
         Add edge u->v to the forwarding graph. Set v=-1 to forward out of the topology.
         """
+        # dan 21.8.6
+        for nxt in self.next[u]:
+            if nxt == v:
+                return
         self.next[u].append(v)
         if v >= 0:
             self.traversed_edges.append((u, v))

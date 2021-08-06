@@ -138,13 +138,17 @@ class Explorer:
                   the second entry are the decision points
         """
         fwg = FwGraph(self.problem.nof_nodes, flow.src, flow.dst)
-        decision_points = []
+        # decision_points = []
+        # dan 21.8.6
+        decision_points = set()
         visited = [False]*self.problem.nof_nodes
         # putting None as next hop makes sure that the source of the flow becomes a decision point
         self._visit_construct_fw_graph(fwg, decision_points, visited, flow.src, None)
         return fwg, decision_points
 
-    def _visit_construct_fw_graph(self, fwg: FwGraph, decision_points: list, visited: list, cur: int, prev_next_hop):
+    # def _visit_construct_fw_graph(self, fwg: FwGraph, decision_points: list, visited: list, cur: int, prev_next_hop):
+    # dan 21.8.6
+    def _visit_construct_fw_graph(self, fwg: FwGraph, decision_points: set, visited: list, cur: int, prev_next_hop):
         if visited[cur]:
             return
         visited[cur] = True
@@ -167,7 +171,9 @@ class Explorer:
             # dan
             for one_next_hop in bgp_next_hop:
                 if one_next_hop != prev_next_hop:
-                    decision_points.append(cur)
+                    # decision_points.append(cur)
+                    # dan 21.8.6
+                    decision_points.add(cur)
                 if one_next_hop is not None:
                     if one_next_hop.is_external():
                         # traffic exits the network here
@@ -191,11 +197,16 @@ class Explorer:
         self._igp_provider.update_bgp_next_hops(flow.dst, self.problem.bgp.get_next_hops_for_internal())
         log.debug("computed next hops: %s", self._igp_provider._bgp_next_hop_data)
 
-    def _add_hot_edges_bgp(self, flow: Flow, fwg: FwGraph, decision_points: list, hot_edges: set):
+    # def _add_hot_edges_bgp(self, flow: Flow, fwg: FwGraph, decision_points: list, hot_edges: set):
+    # dan 21.8.6
+    def _add_hot_edges_bgp(self, flow: Flow, fwg: FwGraph, decision_points: set, hot_edges: set):
         # mark edges between any RR and BR as hot
         for rr in self.problem.bgp.rr_in_partition:
             for br in self.problem.bgp.br_top3_in_partition:
-                Explorer.add_edges_of_path(self._igp_provider.get_a_shortest_path(rr.assigned_node, br.assigned_node), hot_edges)
+                # Explorer.add_edges_of_path(self._igp_provider.get_a_shortest_path(rr.assigned_node, br.assigned_node), hot_edges)
+                # dan 21.8.5
+                for sp in self._igp_provider.get_all_shortest_path(rr.assigned_node, br.assigned_node):
+                    Explorer.add_edges_of_path(sp, hot_edges)
 
         # mark shortest paths from decision points to selected next hops as hot
         for r in decision_points:
@@ -207,8 +218,11 @@ class Explorer:
             # dan
             for one_next_hop in bgp_next_hop:
                 if not one_next_hop.is_external():
-                    Explorer.add_edges_of_path(self._igp_provider.get_a_shortest_path(r, one_next_hop.assigned_node),
-                                               hot_edges)
+                    # Explorer.add_edges_of_path(self._igp_provider.get_a_shortest_path(r, one_next_hop.assigned_node),
+                    #                            hot_edges)
+                    # dan 21.8.5
+                    for sp in self._igp_provider.get_all_shortest_path(r, one_next_hop.assigned_node):
+                        Explorer.add_edges_of_path(sp, hot_edges)
 
         # mark edges on forwarding graph as hot
         for e in fwg.traversed_edges:
@@ -217,7 +231,10 @@ class Explorer:
         if len(self.problem.bgp.rr_in_partition) == 0:
             # ensure connectivity by adding all shortest paths from source to border routers
             for br in self.problem.bgp.br_top3_in_partition:
-                Explorer.add_edges_of_path(self._igp_provider.get_a_shortest_path(flow.src, br.assigned_node), hot_edges)
+                # Explorer.add_edges_of_path(self._igp_provider.get_a_shortest_path(flow.src, br.assigned_node), hot_edges)
+                # dan 21.8.5
+                for sp in self._igp_provider.get_all_shortest_path(flow.src, br.assigned_node):
+                    Explorer.add_edges_of_path(sp, hot_edges)
 
     @staticmethod
     def add_edges_of_path(path: list, edges: set):

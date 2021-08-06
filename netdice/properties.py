@@ -187,6 +187,8 @@ class ReachableProperty(BaseProperty):
         for n in fwg.next[cur]:
             if not self._check_rec(fwg, visited, n):
                 return False
+        # dan 21.8.5
+        visited[cur] = False
         return True
 
 

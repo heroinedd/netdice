@@ -2,11 +2,11 @@ import argparse
 import json
 import os
 
-from netdice.danwexp.scenarios import SynthScenario
-from netdice.experiments.analyzer import Analyzer
 from netdice.danwexp.experiment_runner import ExperimentRunner
+from netdice.danwexp.scenarios import WaypointScenario, ReachableScenario
+from netdice.experiments.analyzer import Analyzer
 from netdice.my_logging import log
-from netdice.util import get_relative_to_working_directory
+from netdice.util import project_root_dir
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("netdice.danwexp")
@@ -20,8 +20,8 @@ if __name__ == "__main__":
         print("must provide either --run or --analyze flag")
         exit(1)
 
-    input_dir = get_relative_to_working_directory('input')
-    output_dir = get_relative_to_working_directory('output')
+    input_dir = os.path.abspath(os.path.join(project_root_dir, "netdice/danwexp/input"))
+    output_dir = os.path.abspath(os.path.join(project_root_dir, "netdice/danwexp/output"))
 
     if args.run:
         # run experiments
@@ -32,11 +32,11 @@ if __name__ == "__main__":
 
         # Topology Zoo / target 10^-4 / +hot
         for name in os.listdir(zoo_dir):
-            if name == 'UsCarrier':
-                base_dir = os.path.join(zoo_dir, name)
-                topology_file = os.path.join(base_dir, name + '.in')
-                config_file = os.path.join(base_dir, 'config.json')
-                runner.scenarios.append(SynthScenario(name, "default", topology_file, config_file, 1.0E-3))
+            base_dir = os.path.join(zoo_dir, name)
+            topology_file = os.path.join(base_dir, name + '.in')
+            config_file = os.path.join(base_dir, 'config.json')
+            runner.scenarios.append(WaypointScenario(name, "default", topology_file, config_file, 1.0E-4))
+            runner.scenarios.append(ReachableScenario(name, "default", topology_file, config_file, 1.0E-4))
 
         runner.run_all(args.processes)
 

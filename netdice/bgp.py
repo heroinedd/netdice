@@ -249,7 +249,7 @@ class BgpIntRouter(BgpRouterBase):
                 c2 = self._igp_cost_for_msg(best[0], igp_cost_provider)
                 if m.better(best[0], c1, c2):
                     best = [m]
-                elif len(best) > 0 and c1 == c2:
+                elif c1 == c2:
                     best.append(m)
         out = best
         self.last_best = best
@@ -302,7 +302,8 @@ class BgpIntRouter(BgpRouterBase):
         if self.last_best is None:
             return None
         # return self.last_best.next_hop
-        return [one.next_hop for one in self.last_best]
+        # dan
+        return list(set(one.next_hop for one in self.last_best))
 
     def _igp_cost_for_msg(self, msg: BgpMsg, cost_provider):
         if msg.next_hop.is_external():

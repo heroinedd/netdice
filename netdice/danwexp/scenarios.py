@@ -1,4 +1,5 @@
 import json
+import os
 import time
 
 from netdice.bgp import BgpIntRouter, BgpExtRouter, Announcement, BgpConfig
@@ -10,7 +11,8 @@ from netdice.input_parser import NameResolver, InputParser
 from netdice.my_logging import log, log_context, time_measure
 from netdice.prob import Prob
 from netdice.problem import Problem
-from netdice.properties import WaypointProperty
+from netdice.properties import WaypointProperty, ReachableProperty
+from netdice.util import project_root_dir
 
 
 class SynthScenario(BaseScenario):
@@ -44,68 +46,6 @@ class SynthScenario(BaseScenario):
         self.rr_ids = []
         self.br_ids = []
         self.pr_id = -1
-
-    def run(self):
-        self.name_resolver = NameResolver()
-        self.nof_nodes, self.links = self._load_topology()
-        self.nof_links = len(self.links)
-        self.rr_ids, self.br_ids, self.pr_id = self._load_config()
-
-        log.data("topology", {"name": self.topo_name, "nof_nodes": self.nof_nodes, "nof_links": self.nof_links})
-
-        srcs = set([i for i in range(self.nof_nodes)])
-        srcs = srcs.difference(self.br_ids)
-        srcs.remove(self.pr_id)
-        srcs = list(srcs)
-        srcs.sort()
-
-        result = {"properties": []}
-        with time_measure('total-explore-time'):
-            start = time.time()
-            for i, src in enumerate(srcs):
-                log.info("running %s * %d", str(self), i)
-
-                with log_context(i):
-                    # create BGP config
-                    bgp_config = self._load_bgp_config()
-
-                    # create failure model
-                    if self.only_link_failures:
-                        failure_model = LinkFailureModel(Prob(0.001))
-                    else:
-                        failure_model = NodeFailureModel(Prob(0.001), Prob(0.0001))
-
-                    # create property
-                    prop = self.get_property(src)
-
-                    # create problem
-                    problem = Problem(self.nof_nodes, self.links, [], bgp_config, failure_model, prop)
-                    problem.target_precision = self.precision
-
-                    # run exploration
-                    with time_measure("time-explore"):
-                        explorer = Explorer(problem, stat_hot=self.collect_hot, stat_prec=self.collect_precision)
-                        sol = explorer.explore_all(timeout=self.timeout)
-                    log.data("finished", {
-                            "precision": sol.p_explored.invert().val(),
-                            "p_property": sol.p_property.val(),
-                            "num_explored": sol.num_explored
-                        })
-                    result["properties"].append({"src": src,
-                                                 "point": self.pr_id,
-                                                 "imprecision": sol.p_explored.invert().val(),
-                                                 "probability": sol.p_property.val()})
-            end = time.time()
-            elapsed = end - start
-            result["runtime"] = elapsed
-            with open("output/json" + self.topo_name + ".json", 'w', encoding='utf-8') as f:
-                json.dump(result, f)
-
-    def get_property(self, src: int):
-        # create random waypoint property
-        prop = WaypointProperty(Flow(src, "XXX"), self.pr_id)
-        log.data("property", prop.get_human_readable(self.name_resolver))
-        return prop
 
     def _load_topology(self):
         self.parser = InputParser(self.topology_file)
@@ -177,3 +117,143 @@ class SynthScenario(BaseScenario):
                 if a.assigned_node < b.assigned_node:
                     a.peers.append(b)
                     b.peers.append(a)
+
+
+class WaypointScenario(SynthScenario):
+    def run(self):
+        self.name_resolver = NameResolver()
+        self.nof_nodes, self.links = self._load_topology()
+        self.nof_links = len(self.links)
+        self.rr_ids, self.br_ids, self.pr_id = self._load_config()
+
+        log.data("topology", {"name": self.topo_name, "nof_nodes": self.nof_nodes, "nof_links": self.nof_links})
+
+        srcs = set([i for i in range(self.nof_nodes)])
+        srcs = srcs.difference(self.br_ids)
+        srcs.remove(self.pr_id)
+        srcs = list(srcs)
+        srcs.sort()
+
+        result_path = os.path.abspath(
+            os.path.join(
+                project_root_dir,
+                "netdice/danwexp/output/json/waypoint/" + self.topo_name + ".json"
+            )
+        )
+
+        result = {"properties": []}
+        with time_measure('total-explore-time'):
+            start = time.time()
+            for i, src in enumerate(srcs):
+                log.info("running %s * %d", str(self), i)
+
+                with log_context(i):
+                    # create BGP config
+                    bgp_config = self._load_bgp_config()
+
+                    # create failure model
+                    if self.only_link_failures:
+                        failure_model = LinkFailureModel(Prob(0.001))
+                    else:
+                        failure_model = NodeFailureModel(Prob(0.001), Prob(0.0001))
+
+                    # create property
+                    prop = self.get_property(src)
+
+                    # create problem
+                    problem = Problem(self.nof_nodes, self.links, [], bgp_config, failure_model, prop)
+                    problem.target_precision = self.precision
+
+                    # run exploration
+                    with time_measure("time-explore"):
+                        explorer = Explorer(problem, stat_hot=self.collect_hot, stat_prec=self.collect_precision)
+                        sol = explorer.explore_all(timeout=self.timeout)
+                    log.data("finished", {
+                        "precision": sol.p_explored.invert().val(),
+                        "p_property": sol.p_property.val(),
+                        "num_explored": sol.num_explored
+                    })
+                    result["properties"].append({"src": src,
+                                                 "point": self.pr_id,
+                                                 "imprecision": sol.p_explored.invert().val(),
+                                                 "probability": sol.p_property.val()})
+            end = time.time()
+            elapsed = end - start
+            result["runtime"] = elapsed
+            with open(result_path, 'w', encoding='utf-8') as f:
+                json.dump(result, f, indent=4)
+
+    def get_property(self, src: int):
+        # create random waypoint property
+        prop = WaypointProperty(Flow(src, "XXX"), self.pr_id)
+        log.data("property", prop.get_human_readable(self.name_resolver))
+        return prop
+
+
+class ReachableScenario(SynthScenario):
+    def run(self):
+        self.name_resolver = NameResolver()
+        self.nof_nodes, self.links = self._load_topology()
+        self.nof_links = len(self.links)
+        self.rr_ids, self.br_ids, self.pr_id = self._load_config()
+
+        log.data("topology", {"name": self.topo_name, "nof_nodes": self.nof_nodes, "nof_links": self.nof_links})
+
+        srcs = set([i for i in range(self.nof_nodes)])
+        srcs = srcs.difference(self.br_ids)
+        srcs = list(srcs)
+        srcs.sort()
+
+        result_path = os.path.abspath(
+            os.path.join(
+                project_root_dir,
+                "netdice/danwexp/output/json/reachable/" + self.topo_name + ".json"
+            )
+        )
+
+        result = {"properties": []}
+        with time_measure('total-explore-time'):
+            start = time.time()
+            for i, src in enumerate(srcs):
+                log.info("running %s * %d", str(self), i)
+
+                with log_context(i):
+                    # create BGP config
+                    bgp_config = self._load_bgp_config()
+
+                    # create failure model
+                    if self.only_link_failures:
+                        failure_model = LinkFailureModel(Prob(0.001))
+                    else:
+                        failure_model = NodeFailureModel(Prob(0.001), Prob(0.0001))
+
+                    # create property
+                    prop = self.get_property(src)
+
+                    # create problem
+                    problem = Problem(self.nof_nodes, self.links, [], bgp_config, failure_model, prop)
+                    problem.target_precision = self.precision
+
+                    # run exploration
+                    with time_measure("time-explore"):
+                        explorer = Explorer(problem, stat_hot=self.collect_hot, stat_prec=self.collect_precision)
+                        sol = explorer.explore_all(timeout=self.timeout)
+                    log.data("finished", {
+                        "precision": sol.p_explored.invert().val(),
+                        "p_property": sol.p_property.val(),
+                        "num_explored": sol.num_explored
+                    })
+                    result["properties"].append({"src": src,
+                                                 "imprecision": sol.p_explored.invert().val(),
+                                                 "probability": sol.p_property.val()})
+            end = time.time()
+            elapsed = end - start
+            result["runtime"] = elapsed
+            with open(result_path, 'w', encoding='utf-8') as f:
+                json.dump(result, f, indent=4)
+
+    def get_property(self, src: int):
+        # create random reachable property
+        prop = ReachableProperty(Flow(src, "XXX"))
+        log.data("property", prop.get_human_readable(self.name_resolver))
+        return prop

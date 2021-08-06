@@ -71,6 +71,10 @@ class IgpProvider:
         """
         return self._sp_data[v][1][u]  # [1] are the paths
 
+    # dan 21.8.5
+    def get_all_shortest_path(self, u: int, v: int):
+        return nx.all_shortest_paths(self._problem.G, u, v, weight="weight")
+
     def get_bgp_next_hop(self, u: int, dst: str):
         """
         :return: the BGP next hop (BgpRouterBase) selected by node u for destination dst. None if no next hop selected.
