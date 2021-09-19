@@ -100,7 +100,7 @@ def component(name: str):
 
 
 if __name__ == "__main__":
-    draw_topology('Cogentco.in', br=[], rr=[])
+    # draw_topology('Cogentco.in', br=[], rr=[])
     # from_base = 'E:/study/MyTool/mytool/networks/netdice/zoo'
     # to_base = 'E:/study/MyTool/netdice/netdice/danw/input'
     # for net in os.listdir(from_base):
@@ -112,3 +112,19 @@ if __name__ == "__main__":
     #
     #     copy(os.path.join(from_dir, net + '.in'), os.path.join(to_dir, net + '.in'))
     #     copy(os.path.join(from_dir, 'property.json'), os.path.join(to_dir, 'property.json'))
+    with open('e:/study/MyTool/mytool/networks/differential/campus/010316/topology.txt', 'r') as f:
+        G = nx.Graph()
+        for line in f.readlines():
+            tmp = line.split(' ')
+            node1 = tmp[0]
+            node2 = tmp[2]
+            G.add_node(node1, name=node1)
+            G.add_node(node2, name=node2)
+            G.add_edge(node1, node2)
+    plt.figure(figsize=(15, 15))
+    pos = spring_layout(G)
+    node_labels = nx.get_node_attributes(G, 'name')
+    nx.draw(G, pos)
+    nx.draw_networkx_labels(G, pos=pos, labels=node_labels, font_size=font_size)
+    plt.savefig('output/' + "campus")
+    plt.show()

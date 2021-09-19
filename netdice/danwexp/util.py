@@ -2,7 +2,7 @@ import os
 import json
 
 if __name__ == '__main__':
-    input_dir = 'e:/study/MyTool/netdice/netdice/danwexp/input'
+    input_dir = 'e:/study/MyTool/netdice/netdice/danwexp/input/mrinfo'
     for net in os.listdir(input_dir):
         property_file = os.path.join(input_dir, net, 'property.json')
         config_file = os.path.join(input_dir, net, 'config.json')

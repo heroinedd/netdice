@@ -59,6 +59,7 @@ class SynthScenario(BaseScenario):
     def _load_config(self):
         with open(self.config_file) as f:
             config = json.load(f)
+            # rrs and brs are router id list, point are router name
             return config['rrs'], config['brs'], config['point']
 
     def _load_bgp_config(self):
@@ -125,6 +126,7 @@ class WaypointScenario(SynthScenario):
         self.nof_nodes, self.links = self._load_topology()
         self.nof_links = len(self.links)
         self.rr_ids, self.br_ids, self.pr_id = self._load_config()
+        self.pr_id = self.name_resolver.id_for_node_name[str(self.pr_id)]
 
         log.data("topology", {"name": self.topo_name, "nof_nodes": self.nof_nodes, "nof_links": self.nof_links})
 
@@ -145,6 +147,8 @@ class WaypointScenario(SynthScenario):
         with time_measure('total-explore-time'):
             start = time.time()
             for i, src in enumerate(srcs):
+                if time.time() - start >= self.timeout:
+                    break
                 log.info("running %s * %d", str(self), i)
 
                 with log_context(i):
@@ -196,6 +200,7 @@ class ReachableScenario(SynthScenario):
         self.nof_nodes, self.links = self._load_topology()
         self.nof_links = len(self.links)
         self.rr_ids, self.br_ids, self.pr_id = self._load_config()
+        self.pr_id = self.name_resolver.id_for_node_name[str(self.pr_id)]
 
         log.data("topology", {"name": self.topo_name, "nof_nodes": self.nof_nodes, "nof_links": self.nof_links})
 
@@ -215,6 +220,8 @@ class ReachableScenario(SynthScenario):
         with time_measure('total-explore-time'):
             start = time.time()
             for i, src in enumerate(srcs):
+                if time.time() - start > self.timeout:
+                    break
                 log.info("running %s * %d", str(self), i)
 
                 with log_context(i):

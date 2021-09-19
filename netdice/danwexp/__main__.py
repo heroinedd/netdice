@@ -28,12 +28,21 @@ if __name__ == "__main__":
         runner = ExperimentRunner(output_dir, "")
 
         # input files
-        zoo_dir = os.path.join(input_dir, "zoo")
+        # zoo_dir = os.path.join(input_dir, "zoo")
+        mrinfo_dir = os.path.join(input_dir, "mrinfo")
 
-        # Topology Zoo / target 10^-4 / +hot
-        for name in os.listdir(zoo_dir):
-            base_dir = os.path.join(zoo_dir, name)
-            topology_file = os.path.join(base_dir, name + '.in')
+        # # Topology Zoo / target 10^-4 / +hot
+        # for name in os.listdir(zoo_dir):
+        #     base_dir = os.path.join(zoo_dir, name)
+        #     topology_file = os.path.join(base_dir, name + '.in')
+        #     config_file = os.path.join(base_dir, 'config.json')
+        #     runner.scenarios.append(WaypointScenario(name, "default", topology_file, config_file, 1.0E-4))
+        #     runner.scenarios.append(ReachableScenario(name, "default", topology_file, config_file, 1.0E-4))
+
+        # mrinfo / target 10^-4 / +hot
+        for name in os.listdir(mrinfo_dir):
+            base_dir = os.path.join(mrinfo_dir, name)
+            topology_file = os.path.join(base_dir, name + '.json')
             config_file = os.path.join(base_dir, 'config.json')
             runner.scenarios.append(WaypointScenario(name, "default", topology_file, config_file, 1.0E-4))
             runner.scenarios.append(ReachableScenario(name, "default", topology_file, config_file, 1.0E-4))
