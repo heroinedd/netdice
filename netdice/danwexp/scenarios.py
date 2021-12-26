@@ -17,7 +17,7 @@ from netdice.util import project_root_dir
 
 class SynthScenario(BaseScenario):
     def __init__(self, topo_name: str, suffix: str, topology_file: str, config_file: str, precision: float,
-                 collect_hot=False, collect_precision=False, only_link_failures=True, timeout_h=1.0):
+                 collect_hot=False, collect_precision=False, only_link_failures=False, timeout_h=1.0):
         """
         :param topo_name: string name of the network topology
         :param suffix: suffix to be used for the scenario name
@@ -136,12 +136,20 @@ class WaypointScenario(SynthScenario):
         srcs = list(srcs)
         srcs.sort()
 
-        result_path = os.path.abspath(
-            os.path.join(
-                project_root_dir,
-                "netdice/danwexp/output/json/waypoint/" + self.topo_name + ".json"
+        if self.only_link_failures:
+            result_path = os.path.abspath(
+                os.path.join(
+                    project_root_dir,
+                    "netdice/danwexp/output/link/json/waypoint/" + self.topo_name + ".json"
+                )
             )
-        )
+        else:
+            result_path = os.path.abspath(
+                os.path.join(
+                    project_root_dir,
+                    "netdice/danwexp/output/node/json/waypoint/" + self.topo_name + ".json"
+                )
+            )
 
         result = {"properties": []}
         with time_measure('total-explore-time'):
@@ -209,12 +217,20 @@ class ReachableScenario(SynthScenario):
         srcs = list(srcs)
         srcs.sort()
 
-        result_path = os.path.abspath(
-            os.path.join(
-                project_root_dir,
-                "netdice/danwexp/output/json/reachable/" + self.topo_name + ".json"
+        if self.only_link_failures:
+            result_path = os.path.abspath(
+                os.path.join(
+                    project_root_dir,
+                    "netdice/danwexp/output/link/json/reachable/" + self.topo_name + ".json"
+                )
             )
-        )
+        else:
+            result_path = os.path.abspath(
+                os.path.join(
+                    project_root_dir,
+                    "netdice/danwexp/output/node/json/reachable/" + self.topo_name + ".json"
+                )
+            )
 
         result = {"properties": []}
         with time_measure('total-explore-time'):
